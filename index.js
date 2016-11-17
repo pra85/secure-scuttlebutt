@@ -20,6 +20,8 @@ var compare   = require('typewiselite')
 var peek      = require('level-peek')
 var Validator = require('ssb-feed/validator')
 
+var EventEmitter = require('events')
+
 var isFeedId = ref.isFeedId
 var isMsgId  = ref.isMsgId
 var isBlobId = ref.isBlobId
@@ -59,15 +61,10 @@ function getVMajor () {
 module.exports = function (_, opts, keys, path) {
   path = path || _.location
 
-//  var sysDB   = db.sublevel('sys')
-//  var logDB   = db.sublevel('log')
-//  var feedDB  = require('./indexes/feed')(db)
-//  var clockDB = require('./indexes/clock')(db)
-//  var lastDB  = require('./indexes/last')(db)
-//  var indexDB = require('./indexes/links')(db, keys)
-//  var appsDB  = db.sublevel('app')
-
   var db = require('./db')(path)
+
+  //fairly sure that something up the stack expects ssb to be an event emitter.
+  db.__proto__ = new EventEmitter()
 
   function get (db, key) {
     return function (cb) { db.get(key, cb) }
@@ -162,8 +159,7 @@ module.exports = function (_, opts, keys, path) {
     return pull(
       paramap(function (data, cb) {
         db.add(data, function (err, msg) {
-          if(err)
-            db.emit('invalid', err, msg)
+          if(err) db.emit('invalid', err, msg)
           cb()
         })
       }),
@@ -195,16 +191,15 @@ module.exports = function (_, opts, keys, path) {
     opts = stdopts(opts)
     var keys = opts.keys; delete opts.keys
     var values = opts.values; delete opts.values
-    return db.stream({values: true, seqs: false, live: opts.live})
+    return db.time.read(opts)
+    //return db.stream({values: true, seqs: false, live: opts.live})
   }
-
-  var HI = undefined, LO = null
 
   db.messagesByType = db.links.messagesByType
 
-  //Limit(indexDB.messagesByType)
-
   db.links = db.links.links
+
+  var HI = undefined, LO = null
 
   //get all messages that link to a given message.
   db.relatedMessages = function (opts, cb) {
