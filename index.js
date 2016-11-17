@@ -147,21 +147,18 @@ module.exports = function (_, opts, keys, path) {
     return paramap(function (key, cb) {
       if(key.sync) return cb(null, key)
       if(!values) return cb(null, key)
-      db.get(key, function (err, msg) {
+      db.get(key, function (err, data) {
         if (err) cb(err)
-        else {
-          cb(null, u.format(keys, values, { key: key, value: msg }))
-        }
+        else cb(null, u.format(keys, values, data))
       })
     })
   }
 
   db.lookup = lookup
 
-//  db.createHistoryStream = Limit(clockDB.createHistoryStream)
+  db.createHistoryStream = db.clock.createHistoryStream
 
-//  db.createUserStream = Limit(clockDB.createUserStream)
-
+  db.createUserStream = db.clock.createUserStream
 
   //writeStream - used in replication.
   db.createWriteStream = function (cb) {
@@ -182,7 +179,7 @@ module.exports = function (_, opts, keys, path) {
     return createFeed(_ssb, keys, opts)
   }
 
-//  db.latest = Limit(lastDB.latest)
+  db.latest = db.last.latest
 //
 //  db.latestSequence = function (id, cb) {
 //    lastDB.get(id, cb)
@@ -280,13 +277,4 @@ module.exports = function (_, opts, keys, path) {
 
   return db
 }
-
-
-
-
-
-
-
-
-
 
