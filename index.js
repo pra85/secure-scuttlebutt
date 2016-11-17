@@ -112,39 +112,6 @@ module.exports = function (_, opts, keys, path) {
 
   var realtime = Notify()
 
-//  var await = u.await()
-//  var set = await.set
-//  await.set = null
-//  var waiting = []
-//  db.seen = await
-//  db.post(function (op) {
-//    set(Math.max(op.ts || op.timestamp, await.get()||0))
-//  })
-//
-//  peek.last(logDB, {keys: true}, function (err, key) {
-//    set(Math.max(key || 0, await.get()||0))
-//  })
-//
-//  db.pre(function (op, _add, _batch) {
-//    var msg = op.value
-//    var id = op.key
-//    // index by sequence number
-//
-//    function add (kv) {
-//      _add(kv);
-//      kv._value = op.value
-//      realtime(kv)
-//    }
-//
-//    var localtime = op.timestamp = timestamp()
-//
-//    add({
-//      key: localtime, value: id,
-//      type: 'put', prefix: logDB
-//    })
-//
-//  })
-//
   function Limit (fn) {
     return function (opts) {
       if(opts && opts.limit && opts.limit > 0) {
@@ -240,22 +207,6 @@ module.exports = function (_, opts, keys, path) {
     var keys = opts.keys; delete opts.keys
     var values = opts.values; delete opts.values
     return db.stream({values: true, seqs: false, live: opts.live})
-//    return pull(
-//      db.stream({values: true, seqs: false, live: opts.live})
-////,
-////      pl.old(logDB, stdopts(opts)),
-//      //lookup2(keys, values, 'timestamp')
-////      paramap(function (data, cb) {
-////        var key = data.value
-////        var seq = data.key
-////        db.get(key, function (err, value) {
-////          if (err) cb(err)
-////          else cb(null, msgFmt(keys, values, {key: key, value: value, timestamp: seq}))
-////        })
-////      })
-//    )
-//  }, function (opts) {
-//    return pl.live(db, stdopts(opts))
   }
 
   var HI = undefined, LO = null
@@ -326,25 +277,12 @@ module.exports = function (_, opts, keys, path) {
     }
   }
 
-  var _close = db.close
-
-  db.close = function (cb) {
-    var n = 5
-    clockDB.close(next)
-    feedDB.close(next)
-    lastDB.close(next)
-    indexDB.close(next)
-    _close.call(db, next)
-    function next (err) {
-      if(n < 0) return
-      if(err) return n = -1, cb(err)
-      if(--n) return
-      db && cb()
-    }
-  }
 
   return db
 }
+
+
+
 
 
 
