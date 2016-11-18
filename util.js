@@ -1,3 +1,4 @@
+var Map = require('pull-stream/throughs/map')
 
   // opts standardized to work like levelup api
   function stdopts (opts) {
@@ -23,21 +24,11 @@ exports.format = msgFmt
 exports.lo = null
 exports.hi = undefined
 
-exports.await = function () {
-  var waiting = [], value
-  return {
-    get: function () { return value },
-    set: function (_value) {
-      value = _value
-      while(waiting.length)
-        waiting.shift()(null, value)
-    },
-    await: function (cb) {
-      if(value !== undefined) cb(null, value)
-      else waiting.push(cb)
-    }
-  }
+exports.formatStream = function (keys, values) {
+  return Map(function (data) {
+    if(data.sync) return data
+    return keys && values ? data.value : keys ? data.value.key : data.value.value
+  })
 }
-
 
 
